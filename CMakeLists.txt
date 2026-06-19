@@ -20,8 +20,23 @@ if(BACKEND STREQUAL "vulkan")
 elseif(BACKEND STREQUAL "cuda")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(ORT REQUIRED libonnxruntime)
-    add_executable(mattemodel-server
-        src/server.cpp src/matte_engine_ort.cpp src/matte_rvm.cpp)
+
+    # The RVM engine as an installable library. mattemodel is its canonical home;
+    # other apps (e.g. NulBGRemoval) link this instead of duplicating the source.
+    add_library(matte STATIC src/matte_rvm.cpp)
+    target_include_directories(matte
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+               $<INSTALL_INTERFACE:include/matte>)
+    target_include_directories(matte PRIVATE ${ORT_INCLUDE_DIRS})
+    set_target_properties(matte PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+    install(TARGETS matte EXPORT matteTargets ARCHIVE DESTINATION lib)
+    install(FILES src/matte_rvm.hpp DESTINATION include/matte)
+    install(EXPORT matteTargets NAMESPACE matte::
+        FILE matteConfig.cmake DESTINATION lib/cmake/matte)
+
+    add_executable(mattemodel-server src/server.cpp src/matte_engine_ort.cpp)
+    target_link_libraries(mattemodel-server PRIVATE matte)
     target_include_directories(mattemodel-server PRIVATE ${ORT_INCLUDE_DIRS})
     target_link_directories(mattemodel-server PRIVATE ${ORT_LIBRARY_DIRS})
     target_link_libraries(mattemodel-server PRIVATE ${ORT_LIBRARIES})
