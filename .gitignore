@@ -1,0 +1,13 @@
+# build output
+/build/
+
+# local machine overrides
+/config.env
+
+# model weights (fetched via ./fetch-model.sh)
+/models/*.bin
+/models/*.param
+/models/*.onnx
+
+# scratch
+*.png
