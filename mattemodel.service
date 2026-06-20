@@ -4,9 +4,9 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-# Assumes the repo lives at ~/programming/mattemodel. If you cloned it elsewhere,
-# edit this path (or symlink the repo there).
-ExecStart=%h/programming/mattemodel/mattemodel.sh
+# Assumes the repo lives at ~/programming/Models/mattemodel. If you cloned it
+# elsewhere, edit this path (or symlink the repo there).
+ExecStart=%h/programming/Models/mattemodel/mattemodel.sh
 Restart=on-failure
 RestartSec=2
 # Model stays warm on the GPU for the whole session. POST /park to free it on

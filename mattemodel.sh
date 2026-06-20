@@ -15,6 +15,12 @@ export MM_PORT="${MM_PORT:-48460}"
 # Which backend was built? (build.sh writes this.) Default cuda.
 BACKEND="${MM_BACKEND:-$( [ -f "$HERE/build/backend.txt" ] && cat "$HERE/build/backend.txt" || echo cuda )}"
 
+# Device placement (gpu|ram) — written by the model-manager dock, read on launch.
+# "ram" makes the ORT engine use the CPU provider (RVM runs on CPU + system RAM).
+DEVICE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/modelmanager/mattemodel.device"
+MM_DEVICE_PLACEMENT="$( [ -f "$DEVICE_FILE" ] && cat "$DEVICE_FILE" || echo gpu )"
+[ "$MM_DEVICE_PLACEMENT" = ram ] && export MM_DEVICE=cpu
+
 # Pick the default model for the backend: cuda → .onnx, vulkan → ncnn prefix.
 if [ "$BACKEND" = vulkan ]; then
     DEFAULT_MODEL="$HERE/models/rvm_resnet50"

@@ -2,6 +2,8 @@
 // (reused from NulBGRemoval), the engine Troy's live camera daemon trusts.
 #include "matte_engine.hpp"
 
+#include <cstdlib>
+#include <string>
 #include <vector>
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -16,7 +18,15 @@ MatteEngine::MatteEngine(std::string model_path)
     : model_(std::move(model_path)), d_(new Impl) {}
 MatteEngine::~MatteEngine() { unload(); }
 
-const char* MatteEngine::backend() { return "cuda"; }
+// Device placement is chosen at launch by the model-manager dock via the
+// MM_DEVICE env (set to "cpu" when the model is moved to RAM); default GPU/CUDA.
+const char* MatteEngine::backend() {
+    static const std::string ep = []() {
+        const char* d = std::getenv("MM_DEVICE");
+        return std::string(d && std::string(d) == "cpu" ? "cpu" : "cuda");
+    }();
+    return ep.c_str();
+}
 bool MatteEngine::global_init() { return true; }   // ORT inits per-session
 void MatteEngine::global_cleanup() {}
 
@@ -24,7 +34,7 @@ bool MatteEngine::load() {
     std::lock_guard<std::mutex> lk(mu_);
     if (d_->rvm) return true;
     try {
-        d_->rvm = std::make_unique<RvmMatte>(model_, "cuda", 0.25f);
+        d_->rvm = std::make_unique<RvmMatte>(model_, backend(), 0.25f);
     } catch (...) {
         return false;
     }
