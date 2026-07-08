@@ -7,7 +7,7 @@ soft-alpha matte — instead of each app re-embedding the model.
 
 RVM produces a **soft alpha matte** (clean hair/edge detail) and does it **without
 a green screen**. It mattes *humans* — for arbitrary objects use the sibling
-**segmodel** (BiRefNet); for whisper STT there's **whispermodel**. All three share
+**segmodel** (BiRefNet); for whisper STT there's **NulSpeech2Text**. All three share
 the same service shape: systemd user daemon, loopback HTTP, model-manager control
 API, **and a build-time backend choice**.
 
