@@ -1,5 +1,6 @@
 // MatteEngine — ONNX Runtime + CUDA backend (BACKEND=cuda). Wraps RvmMatte
 // (reused from NulBGRemoval), the engine Troy's live camera daemon trusts.
+#include <cstdio>
 #include "matte_engine.hpp"
 
 #include <cstdlib>
@@ -35,6 +36,9 @@ bool MatteEngine::load() {
     if (d_->rvm) return true;
     try {
         d_->rvm = std::make_unique<RvmMatte>(model_, backend(), 0.25f);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "mattemodel: %s\n", e.what());
+        return false;
     } catch (...) {
         return false;
     }

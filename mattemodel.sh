@@ -31,5 +31,13 @@ MM_MODEL="${MM_MODEL:-$DEFAULT_MODEL}"
 
 [ -x "$MM_SERVER_BIN" ] || { echo "mattemodel-server not built at $MM_SERVER_BIN — run ./build.sh [$BACKEND]" >&2; exit 1; }
 
+# Arch onnxruntime-cuda 1.29.0-3 (2026-09-22): libonnxruntime_providers_cuda.so no
+# longer DT_NEEDs libcudnn, so its cudnn* symbols stay unresolved and the CUDA
+# provider fails to load ("undefined symbol: cudnnGetConvolutionBackwardDataAlgorithm_v7").
+# Preloading cuDNN into the process resolves them. Harmless once Arch fixes the link.
+if [ "$BACKEND" = cuda ] && [ -e /usr/lib/libcudnn.so.9 ]; then
+    export LD_PRELOAD="/usr/lib/libcudnn.so.9${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
+
 echo "mattemodel: ${MM_MODEL##*/} on $MM_HOST:$MM_PORT (backend=$BACKEND)" >&2
 exec "$MM_SERVER_BIN" "$MM_MODEL"
